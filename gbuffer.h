@@ -16,6 +16,8 @@ public:
     void Bind();
     void Release();
     void Draw(Shader &shader, vector<vec3> lightPositions, vector<vec3> lightColors, vec3 &cameraPostion);
+    void CopyDepthBuffer(GLuint destination);
+
     GLuint positionDepth, normal, albedo;
 private:
     GLuint VAO, VBO, fbo;

@@ -4,6 +4,8 @@
 #include "model.h"
 #include "skybox.h"
 #include "screen.h"
+#include "gbuffer.h"
+#include "font.h"
 
 int main() {
     // Init GLFW
@@ -39,6 +41,41 @@ int main() {
     // Setup screen
     Screen screen;
     Shader screenShader("shaders/screen.vs", "shaders/screenGray.frag");
+    // Setup Defer
+    std::vector<glm::vec3> objectPositions;
+    objectPositions.push_back(glm::vec3(-3.0, -3.0, -3.0));
+    objectPositions.push_back(glm::vec3(0.0, -3.0, -3.0));
+    objectPositions.push_back(glm::vec3(3.0, -3.0, -3.0));
+    objectPositions.push_back(glm::vec3(-3.0, -3.0, 0.0));
+    objectPositions.push_back(glm::vec3(0.0, -3.0, 0.0));
+    objectPositions.push_back(glm::vec3(3.0, -3.0, 0.0));
+    objectPositions.push_back(glm::vec3(-3.0, -3.0, 3.0));
+    objectPositions.push_back(glm::vec3(0.0, -3.0, 3.0));
+    objectPositions.push_back(glm::vec3(3.0, -3.0, 3.0));
+    // - Colors
+    const GLuint NR_LIGHTS = 32;
+    std::vector<glm::vec3> lightPositions;
+    std::vector<glm::vec3> lightColors;
+    srand(13);
+    for (GLuint i = 0; i < NR_LIGHTS; i++)
+    {
+        // Calculate slightly random offsets
+        GLfloat xPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
+        GLfloat yPos = ((rand() % 100) / 100.0) * 6.0 - 4.0;
+        GLfloat zPos = ((rand() % 100) / 100.0) * 6.0 - 3.0;
+        lightPositions.push_back(glm::vec3(xPos, yPos, zPos));
+        // Also calculate random color
+        GLfloat rColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
+        GLfloat gColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
+        GLfloat bColor = ((rand() % 100) / 200.0f) + 0.5; // Between 0.5 and 1.0
+        lightColors.push_back(glm::vec3(rColor, gColor, bColor));
+    }
+    GBuffer gBuffer;
+    Shader deferGShader("shaders/deferG.vs", "shaders/deferG.frag");
+    Shader deferLShader("shaders/deferL.vs", "shaders/deferL.frag");
+    // Setup text
+    Font font("fonts/arial.ttf");
+    Shader fontShader("shaders/font.vs", "shaders/font.frag");
     // Setup timer
     double deltaTime = 0.0f, lastFrame = 0.0f;
     // Game loop
@@ -59,15 +96,25 @@ int main() {
         glm::mat4 view = mainCamera->GetViewMatrix();
         glm::mat4 projection = glm::perspective(mainCamera->Zoom, (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        screen.Bind();
-        mat4 skyboxView = mat4(mat3(view));
-        skybox.Draw(skyboxShader, skyboxModel, skyboxView, projection);
+        gBuffer.Bind();
+        for (GLuint i = 0; i < objectPositions.size(); i++)
+        {
+            model = glm::mat4();
+            model = glm::translate(model, objectPositions[i]);
+            model = glm::scale(model, glm::vec3(0.25f));
+            nanosuitModel.Draw(deferGShader, model, view, projection);
+        }
+        gBuffer.Release();
 
-        nanosuitModel.Draw(modelShader, model, view, projection);
+        screen.Bind();
+        gBuffer.Draw(deferLShader, lightPositions, lightColors, mainCamera->Position);
         screen.Release();
 
         screen.Draw(screenShader);
-        // Swap the screen buffers
+
+        font.Draw(fontShader, "SYSU Project", 25.0f, 25.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
+
+//         Swap the screen buffers
         glfwSwapBuffers(window);
     }
 

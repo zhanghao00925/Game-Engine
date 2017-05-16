@@ -7,6 +7,7 @@
 
 #include "headers.h"
 #include "shader.h"
+#include "definition.h"
 
 using namespace std;
 
@@ -20,10 +21,12 @@ struct Character {
 class Font {
 public:
     Font(const char *fontPath);
-    void RenderText(Shader &shader, std::string text, GLfloat x, GLfloat y, GLfloat fontSize, glm::vec3 color);
+    void Draw(Shader &shader, std::string text, GLfloat x, GLfloat y, GLfloat fontSize, glm::vec3 color);
 
+private:
     map<GLchar, Character> Characters;
     GLuint VAO, VBO;
+    glm::mat4 projection;
 };
 
 

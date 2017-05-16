@@ -65,13 +65,18 @@ Font::Font(const char *fontPath) {
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
+
+    projection = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
 }
 
-void Font::RenderText(Shader &shader, std::string text, GLfloat x, GLfloat y, GLfloat fontSize, glm::vec3 color) {
+void Font::Draw(Shader &shader, std::string text, GLfloat x, GLfloat y, GLfloat fontSize, glm::vec3 color) {
+    // Enable Attribution
+    glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     // Activate corresponding render state
     shader.Use();
+    glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     glUniform3f(glGetUniformLocation(shader.Program, "textColor"), color.x, color.y, color.z);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(VAO);
@@ -111,4 +116,7 @@ void Font::RenderText(Shader &shader, std::string text, GLfloat x, GLfloat y, GL
     }
     glBindVertexArray(0);
     glBindTexture(GL_TEXTURE_2D, 0);
+    // Disable Attribution
+    glDisable(GL_BLEND);
+    glEnable(GL_DEPTH_TEST);
 }
