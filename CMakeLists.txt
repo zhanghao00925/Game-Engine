@@ -1,0 +1,25 @@
+cmake_minimum_required(VERSION 3.7)
+project(Game-Engine)
+
+set(CMAKE_CXX_STANDARD 11)
+
+set(SOURCE_FILES headers.h main.cpp texture.cpp texture.h shader.cpp shader.h mesh.cpp mesh.h camera.cpp camera.h font.cpp font.h definition.h model.cpp model.h controller.cpp controller.h screen.cpp screen.h gbuffer.cpp gbuffer.h skybox.cpp skybox.h definition.cpp shadow.cpp shadow.h object.cpp object.h)
+
+add_executable(Game-Engine ${SOURCE_FILES})
+
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} glut)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} GLU)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} GLEW)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} glfw3)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} GL)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} dl)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} X11)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} Xrandr)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} Xi)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} Xxf86vm)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} Xinerama)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} Xcursor)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} pthread)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} SOIL)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} assimp)
+TARGET_LINK_LIBRARIES(${PROJECT_NAME} freetype)
