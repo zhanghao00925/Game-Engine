@@ -3,7 +3,7 @@ project(Game-Engine)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES headers.h main.cpp texture.cpp texture.h shader.cpp shader.h mesh.cpp mesh.h camera.cpp camera.h font.cpp font.h definition.h model.cpp model.h controller.cpp controller.h screen.cpp screen.h gbuffer.cpp gbuffer.h skybox.cpp skybox.h definition.cpp shadow.cpp shadow.h object.cpp object.h)
+set(SOURCE_FILES headers.h main.cpp texture.cpp texture.h shader.cpp shader.h mesh.cpp mesh.h camera.cpp camera.h font.cpp font.h definition.h model.cpp model.h controller.cpp controller.h screen.cpp screen.h gbuffer.cpp gbuffer.h skybox.cpp skybox.h definition.cpp shadow.cpp shadow.h object.cpp object.h ssao.cpp ssao.h)
 
 add_executable(Game-Engine ${SOURCE_FILES})
 

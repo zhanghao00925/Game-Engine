@@ -6,6 +6,7 @@
 #include "screen.h"
 #include "gbuffer.h"
 #include "font.h"
+#include "ssao.h"
 
 int main() {
     // Init GLFW
@@ -40,7 +41,7 @@ int main() {
     Shader modelShader("shaders/model.vs", "shaders/model.frag");
     // Setup screen
     Screen screen;
-    Shader screenShader("shaders/screen.vs", "shaders/screenGray.frag");
+    Shader screenShader("shaders/screen.vs", "shaders/screenNormal.frag");
     // Setup Defer
     std::vector<glm::vec3> objectPositions;
     objectPositions.push_back(glm::vec3(-3.0, -3.0, -3.0));
@@ -73,6 +74,12 @@ int main() {
     GBuffer gBuffer;
     Shader deferGShader("shaders/deferG.vs", "shaders/deferG.frag");
     Shader deferLShader("shaders/deferL.vs", "shaders/deferL.frag");
+    // Setup SSAO
+    SSAO ssao;
+    Shader ssaoGShader("shaders/ssaoG.vs", "shaders/ssaoG.frag");
+    Shader ssaoShader("shaders/ssao.vs", "shaders/ssao.frag");
+    Shader ssaoBlurShader("shaders/ssao.vs", "shaders/ssaoBlur.frag");
+    Shader ssaoLShader("shaders/ssao.vs", "shaders/ssaoL.frag");
     // Setup text
     Font font("fonts/arial.ttf");
     Shader fontShader("shaders/font.vs", "shaders/font.frag");
@@ -94,25 +101,30 @@ int main() {
         model = glm::translate(model, glm::vec3(0.0, -1.0f, 0.0f));
         model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         glm::mat4 view = mainCamera->GetViewMatrix();
+        glm::mat4 skyboxView = mat4(mat3(mainCamera->GetViewMatrix()));
         glm::mat4 projection = glm::perspective(mainCamera->Zoom, (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
 
         gBuffer.Bind();
-        for (GLuint i = 0; i < objectPositions.size(); i++)
-        {
+        for (GLuint i = 0; i < objectPositions.size(); i++) {
             model = glm::mat4();
             model = glm::translate(model, objectPositions[i]);
             model = glm::scale(model, glm::vec3(0.25f));
-            nanosuitModel.Draw(deferGShader, model, view, projection);
+            nanosuitModel.Draw(ssaoGShader, model, view, projection);
         }
         gBuffer.Release();
 
-        screen.Bind();
-        gBuffer.Draw(deferLShader, lightPositions, lightColors, mainCamera->Position);
-        screen.Release();
+        ssao.SSAOProcess(ssaoShader, gBuffer, projection);
+        ssao.SSAOBlurProcess(ssaoBlurShader);
 
-        screen.Draw(screenShader);
+        ssao.Draw(ssaoLShader, gBuffer, vec3(10, 10, 0), vec3(1, 1, 1), mainCamera->Position);
 
-        font.Draw(fontShader, "SYSU Project", 25.0f, 25.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
+//        screen.Bind();
+//        gBuffer.Draw(deferLShader, lightPositions, lightColors, mainCamera->Position);
+//        screen.Release();
+//
+//        screen.Draw(screenShader);
+//
+//        font.Draw(fontShader, "SYSU Project", 25.0f, 25.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
 
 //         Swap the screen buffers
         glfwSwapBuffers(window);
