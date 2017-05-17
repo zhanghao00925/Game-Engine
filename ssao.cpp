@@ -144,8 +144,8 @@ void SSAO::Draw(Shader &shader, GBuffer &gBuffer, vec3 lightPosition, vec3 light
     glUniform3fv(glGetUniformLocation(shader.Program, "light.Color"), 1, &lightColor[0]);
     // Update attenuation parameters
     const GLfloat constant = 1.0; // Note that we don't send this to the shader, we assume it is always 1.0 (in our case)
-    const GLfloat linear = 0.7;
-    const GLfloat quadratic = 1.8;
+    const GLfloat linear = 0.09;
+    const GLfloat quadratic = 0.032;
     glUniform1f(glGetUniformLocation(shader.Program, "light.Linear"), linear);
     glUniform1f(glGetUniformLocation(shader.Program, "light.Quadratic"), quadratic);
     glUniform3fv(glGetUniformLocation(shader.Program, "viewPos"), 1, &cameraPostion[0]);

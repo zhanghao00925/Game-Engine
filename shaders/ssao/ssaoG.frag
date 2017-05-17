@@ -8,6 +8,7 @@ in vec3 FragPos;
 in vec3 Normal;
 
 uniform sampler2D texture_diffuse1;
+uniform sampler2D texture_specular1;
 
 const float NEAR = 0.1; // Projection matrix's near plane distance
 const float FAR = 50.0f; // Projection matrix's far plane distance
@@ -26,5 +27,7 @@ void main()
     // Also store the per-fragment normals into the gbuffer
     gNormal = normalize(Normal);
     // And the diffuse per-fragment color
-    gAlbedoSpec.rgb = texture(texture_diffuse1, TexCoords).rgb; // Currently all objects have constant albedo color
+    gAlbedoSpec.rgb = texture(texture_diffuse1, TexCoords).rgb;
+    gAlbedoSpec.a = texture(texture_specular1, TexCoords).r;
+//    gAlbedoSpec.rgb = vec3(0.95); // Currently all objects have constant albedo color
 }
