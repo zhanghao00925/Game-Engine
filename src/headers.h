@@ -19,13 +19,13 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 // SOIL
-#include <SOIL.h>
+    #include <SOIL.h>
 // ASSIMP
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 // FreeType
 #include <freetype2/ft2build.h>
-#include FT_FREETYPE_H
+#include FT_FREETYPE_H"freetype/freetype.h"
 
 #endif //GAME_ENGINE_HEADERS_H
