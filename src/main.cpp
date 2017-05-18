@@ -7,6 +7,7 @@
 #include "gbuffer.h"
 #include "font.h"
 #include "ssao.h"
+#include "water.h"
 
 int main() {
     // Init GLFW
@@ -30,7 +31,7 @@ int main() {
     // Setup some OpenGL options
     glEnable(GL_DEPTH_TEST);
     // Setup camera
-    Camera *mainCamera = new Camera(vec3(10, 0, 0));
+    Camera *mainCamera = new Camera(vec3(0, 0, 10));
     Controller::BindCamera(mainCamera);
     // Setup skybox
     SkyBox skybox(skyBoxPath);
@@ -83,10 +84,16 @@ int main() {
     // Setup text
     Font font("fonts/arial.ttf");
     Shader fontShader("shaders/font/font.vs", "shaders/font/font.frag");
+    // Setup water
+    Texture woodTexture("textures/wood.png");
+    Water water(woodTexture);
+    water.Affect(50, 50);
+
     // Setup timer
     double deltaTime = 0.0f, lastFrame = 0.0f;
     // Game loop
     while (!glfwWindowShouldClose(window)) {
+
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -98,25 +105,27 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
 
         glm::mat4 model = glm::mat4();
-        model = glm::translate(model, glm::vec3(0.0, -1.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
-        glm::mat4 view = mainCamera->GetViewMatrix();
-        glm::mat4 skyboxView = mat4(mat3(mainCamera->GetViewMatrix()));
+        model = glm::translate(model, glm::vec3(0.0, -10.0f, 0.0f));
+        glm::mat4 cameraView = mainCamera->GetViewMatrix();
+        glm::mat4 cameraSkyboxView = mat4(mat3(cameraView));
+        glm::mat4 waterView = water.GetViewMatrix(mainCamera->Front, mainCamera->Up);
+        glm::mat4 waterSkyboxView = mat4(mat3(waterView));
         glm::mat4 projection = glm::perspective(mainCamera->Zoom, (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
 
-        gBuffer.Bind();
-        skybox.Draw(skyboxShader, skyboxModel, skyboxView, projection);
-        for (GLuint i = 0; i < objectPositions.size(); i++) {
-            model = glm::mat4();
-            model = glm::translate(model, objectPositions[i]);
-            model = glm::scale(model, glm::vec3(0.25f));
-            nanosuitModel.Draw(ssaoGShader, model, view, projection);
-        }
-        gBuffer.Release();
-        ssao.SSAOProcess(ssaoShader, gBuffer, projection);
-        ssao.SSAOBlurProcess(ssaoBlurShader);
-        ssao.Draw(ssaoLShader, gBuffer, vec3(10, 10, 0), vec3(1, 1, 1), mainCamera->Position);
-
+        // SSAO Test
+//        gBuffer.Bind();
+//        skybox.Draw(skyboxShader, skyboxModel, skyboxView, projection);
+//        for (GLuint i = 0; i < objectPositions.size(); i++) {
+//            model = glm::mat4();
+//            model = glm::translate(model, objectPositions[i]);
+//            model = glm::scale(model, glm::vec3(0.25f));
+//            nanosuitModel.Draw(ssaoGShader, model, view, projection);
+//        }
+//        gBuffer.Release();
+//        ssao.SSAOProcess(ssaoShader, gBuffer, projection);
+//        ssao.SSAOBlurProcess(ssaoBlurShader);
+//        ssao.Draw(ssaoLShader, gBuffer, vec3(10, 10, 0), vec3(1, 1, 1), mainCamera->Position);
+//        // GBuffer Test
 //        gBuffer.Bind();
 //        for (GLuint i = 0; i < objectPositions.size(); i++) {
 //            model = glm::mat4();
@@ -126,7 +135,18 @@ int main() {
 //        }
 //        gBuffer.Release();
 //        gBuffer.Draw(deferLShader, lightPositions, lightColors, mainCamera->Position);
+        // Water Test
+        screen.Bind();
+        skybox.Draw(skyboxShader, skyboxModel, waterSkyboxView, projection);
+        nanosuitModel.Draw(modelShader, model, waterView, projection);
+        screen.Release();
 
+        skybox.Draw(skyboxShader, skyboxModel, cameraSkyboxView, projection);
+        water.ChangeTexture(screen.screenTexId);
+        water.Update(deltaTime);
+
+        water.Draw(modelShader, mat4(), cameraView, projection);
+        nanosuitModel.Draw(modelShader, model, cameraView, projection);
 
         font.Draw(fontShader, "FPS: " + to_string(int(1 / deltaTime)), 700.0f, 570.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
 
