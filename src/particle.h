@@ -50,7 +50,7 @@ public:
     void SetDieColor(vec3 min, vec3 max);
     void SetAlphaValues(float minEmit, float maxEmit, float minDie, float maxDie);
     void SetSizeValues(float minEmit, float maxEmit, float minDie, float maxDie);
-    void SetCreateSpeed(float createdPerSec, float variance);
+    void SetCreateSpeed(int createPerSec, float variance);
     void SetLifeTime(float minAge, float maxAge);
     void SetTexture(GLuint texId);
     void Update(float deltaTime);
@@ -86,7 +86,8 @@ private:
     // Particles attrib
     vector<Particle> particles;
     int maxParticles, numOfParticlesInUse;
-    int createPreSec, createVariance;
+    int createPreSec;
+    float createVariance;
     vec3 billBoardedX, billBoardedY;
     GLuint VAO, VBO;
 };

@@ -97,7 +97,6 @@ void Particle::Draw(Shader &shader) {
     mat4 model;
     model = translate(model, position);
     model = scale(model, vec3(size, size, size));
-    cout << alpha << endl;
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
 
     glUniform4f(glGetUniformLocation(shader.Program, "particleColor"), color.x, color.y, color.z, alpha);
@@ -105,6 +104,7 @@ void Particle::Draw(Shader &shader) {
     glBindVertexArray(belong->VAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
+
 }
 
 // ParticleSystem Part
@@ -152,8 +152,8 @@ void ParticleSystem::SetSpinSpeed(float min, float max) {
     maxSpinSpeed = max;
 }
 
-void ParticleSystem::SetCreateSpeed(float createdPerSec, float variance) {
-    this->createPreSec = createPreSec;
+void ParticleSystem::SetCreateSpeed(int createPerSec, float variance) {
+    this->createPreSec = createPerSec;
     this->createVariance = variance;
 }
 
@@ -198,29 +198,27 @@ void ParticleSystem::SetTexture(GLuint texId) {
 
 void ParticleSystem::Initialize(int numOfParticles) {
     particles.resize(numOfParticles);
-
     maxParticles = numOfParticles;
     numOfParticlesInUse = 0;
 }
 
 void ParticleSystem::Update(float deltaTime) {
-    int particlesToCreate = createPreSec * deltaTime * (1.0f + createVariance * (RANDOM_FLOAT - 0.5));
+    int particlesToCreate = int(createPreSec * deltaTime * 10 * (1.0f + createVariance * (RANDOM_FLOAT - 0.5)));
 
     for (int i = 0; i < maxParticles; i++) {
         if (particles[i].isAlive) {
             particles[i].Update(deltaTime);
-        } else {
-            if (particlesToCreate > 0) {
-                particles[i].Initialize(this);
-                particles[i].Update(RANDOM_FLOAT * deltaTime);
-                particlesToCreate--;
-            }
+        }
+        if (!particles[i].isAlive && particlesToCreate > 0) {
+            particles[i].Initialize(this);
+            particles[i].Update(RANDOM_FLOAT * deltaTime);
+            particlesToCreate--;
+            numOfParticlesInUse++;
         }
     }
 }
 
 void ParticleSystem::Draw(Shader &shader, mat4 view, mat4 projection) {
-    cout << "Start Draw" << endl;
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
