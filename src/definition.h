@@ -13,6 +13,7 @@ using namespace std;
 #define SCR_HEIGHT 600
 #define FAR 0.1f
 #define NEAR 1000.f
+#define PI 3.1415926535898
 
 extern const vector<string> skyBoxPath;
 

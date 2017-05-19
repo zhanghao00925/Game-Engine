@@ -85,20 +85,14 @@ void Particle::Update(float deltaTime) {
     spinAngle += spinSpeed * deltaTime;
 }
 
-void Particle::Draw(Shader &shader) {
-    vec3 rotateX = belong->billBoardedX;
-    vec3 rotateY = belong->billBoardedY;
-    if (spinAngle > 0.0f)
-    {
-        rotateX = belong->billBoardedX * cos(spinAngle) + belong->billBoardedY * sin(spinAngle);
-        rotateY = belong->billBoardedX * cos(spinAngle) - belong->billBoardedY * sin(spinAngle);
-    }
+void Particle::Draw(Shader &shader, float degree) {
 
     mat4 model;
     model = translate(model, position);
     model = scale(model, vec3(size, size, size));
+    model = rotate(model, degree, vec3(0, 1, 0));
+    model = rotate(model, spinAngle, vec3(0, 1, 0));
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
-
     glUniform4f(glGetUniformLocation(shader.Program, "particleColor"), color.x, color.y, color.z, alpha);
 
     glBindVertexArray(belong->VAO);
@@ -218,7 +212,15 @@ void ParticleSystem::Update(float deltaTime) {
     }
 }
 
-void ParticleSystem::Draw(Shader &shader, mat4 view, mat4 projection) {
+void ParticleSystem::Draw(Shader &shader, mat4 &view, mat4 &projection, vec3 &cameraPosition) {
+    vec3 toCamera = position - cameraPosition;
+    vec3 temp = glm::normalize(cross(vec3(0, 1, 0), toCamera));
+    float degree = acos(dot(temp, vec3(1.0f, 0.0f, 0.0f)));
+
+    if (temp.z > 0) {
+        degree = 2 * PI - degree;
+    }
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
@@ -231,12 +233,10 @@ void ParticleSystem::Draw(Shader &shader, mat4 view, mat4 projection) {
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "view"), 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
-//    billBoardedX = vec3(view[0], view[4], view[8]);
-//    billBoardedY = vec3(view[1], view[5], view[9]);
 
     for (int i = 0; i < maxParticles; i++) {
         if (particles[i].isAlive) {
-            particles[i].Draw(shader);
+            particles[i].Draw(shader, degree);
         }
     }
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

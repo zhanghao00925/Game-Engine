@@ -99,14 +99,13 @@ int main() {
     particleSystem.SetLifeTime(0.5, 1.5);
     particleSystem.SetCreationColor(vec3(1.0f,0.0f,0.0f), vec3(1.0f,0.5f,0.0f));
     particleSystem.SetDieColor(vec3(1.0f,1.0f,1.0f), vec3(1.0f,0.5f,0.0f));
-    particleSystem.SetAlphaValues(1.0f,1.0f,0.0f,0.0f);
+    particleSystem.SetAlphaValues(1.0f,1.0f,0.3f,0.3f);
     particleSystem.SetEmitter(vec3(0.0f,0.0f,0.5f), vec3(0.1f,0.0f,0.1f));
     particleSystem.SetAcceleration(vec3(0.0f,1.0f,0.0f), 0.3f, 0.4f);
     particleSystem.SetSizeValues(0.04f,0.08f,0.06f,0.12f);
     particleSystem.SetEmitSpeed(0.2, 0.3);
     particleSystem.SetEmitDirection(vec3(0.0f,1.0f,0.0f), vec3(0.08f,0.5f,0.08f));
     particleSystem.SetTexture(particleTexture.texId);
-    cout << "particle system inited" << endl;
     // Setup timer
     double deltaTime = 0.0f, lastFrame = 0.0f;
     // Game loop
@@ -119,9 +118,8 @@ int main() {
         glfwPollEvents();
         Controller::Movement(deltaTime);
         // Render
-        glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
-
         glm::mat4 model = glm::mat4();
         model = glm::translate(model, glm::vec3(0.0, -10.0f, 0.0f));
         glm::mat4 cameraView = mainCamera->GetViewMatrix();
@@ -129,7 +127,6 @@ int main() {
         glm::mat4 waterView = water.GetViewMatrix(mainCamera->Front, mainCamera->Up);
         glm::mat4 waterSkyboxView = mat4(mat3(waterView));
         glm::mat4 projection = glm::perspective(mainCamera->Zoom, (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 100.0f);
-
 //        // SSAO Test
 //        gBuffer.Bind();
 //        skybox.Draw(skyboxShader, skyboxModel, skyboxView, projection);
@@ -165,15 +162,14 @@ int main() {
 //
 //        water.Draw(modelShader, mat4(), cameraView, projection);
 //        nanosuitModel.Draw(modelShader, model, cameraView, projection);
-
         particleSystem.Update(deltaTime);
-        particleSystem.Draw(particleShader, cameraView, projection);
-
+        particleSystem.Draw(particleShader, cameraView, projection, mainCamera->Position);
 //         Swap the screen buffers
         font.Draw(fontShader, "FPS: " + to_string(int(1 / deltaTime)), 700.0f, 570.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
         glfwSwapBuffers(window);
     }
 
+    delete mainCamera;
     glfwTerminate();
     return 0;
 }

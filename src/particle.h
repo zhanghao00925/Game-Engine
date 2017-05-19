@@ -32,7 +32,7 @@ public:
     Particle();
     void Initialize(ParticleSystem *belong);
     void Update(float deltaTime);
-    void Draw(Shader &shader);
+    void Draw(Shader &shader, float degree);
 };
 
 
@@ -54,7 +54,7 @@ public:
     void SetLifeTime(float minAge, float maxAge);
     void SetTexture(GLuint texId);
     void Update(float deltaTime);
-    void Draw(Shader &shader, mat4 view, mat4 projection);
+    void Draw(Shader &shader, mat4 &view, mat4 &projection, vec3 &cameraPosition);
     bool recreateWhenDie;
 
 private:
