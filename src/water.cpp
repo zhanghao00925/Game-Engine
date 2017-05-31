@@ -79,10 +79,12 @@ void Water::Reset() {
 }
 
 void Water::Affect(int xPos, int zPos, float deltaY) {
+    cout << oscillators[xPos + zPos * xSize].position.y << endl;
     if ((xPos >= 0) && (xPos < xSize) && (zPos >= 0) && (zPos < zSize)) {
         if (oscillators[xPos + zPos * xSize].position.y > -0.15)  //THIS LINE IS REQUIRED FOR FOUNTAINS WITH MANY DROPS!!!
             oscillators[xPos + zPos * xSize].position.y += deltaY;
     }
+    cout << oscillators[xPos + zPos * xSize].position.y << endl;
 }
 
 void Water::Update(float deltaTime) {
@@ -151,7 +153,7 @@ void Water::ChangeTexture(GLuint textureID) {
 }
 
 mat4 Water::GetViewMatrix(vec3 front, vec3 up) {
-    return glm::lookAt(vec3(offset * xSize / 2, 2, offset * zSize / 2),
+    return glm::lookAt(vec3(offset * xSize / 2, 0, offset * zSize / 2),
                        vec3(offset * xSize / 2, 0, offset * zSize / 2) + front,
                        up);
 }
@@ -161,10 +163,10 @@ void Water::Draw(Shader shader, mat4 model, mat4 view, mat4 projection) {
     shader.Use();
 
     glActiveTexture(GL_TEXTURE0);
-    glUniform1i(glGetUniformLocation(shader.Program, "texture_diffuse1"), 0);
+    glUniform1i(glGetUniformLocation(shader.Program, "material.diffuse"), 0);
     glBindTexture(GL_TEXTURE_2D, texId);
     glActiveTexture(GL_TEXTURE1);
-    glUniform1i(glGetUniformLocation(shader.Program, "texture_specular1"), 1);
+    glUniform1i(glGetUniformLocation(shader.Program, "material.specular"), 1);
     glBindTexture(GL_TEXTURE_2D, texId);
 
     glUniformMatrix4fv(glGetUniformLocation(shader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));

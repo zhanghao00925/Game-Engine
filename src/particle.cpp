@@ -223,6 +223,7 @@ void ParticleSystem::Draw(Shader &shader, mat4 &view, mat4 &projection, vec3 &ca
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glDepthMask(GL_FALSE);
 
     shader.Use();
 
@@ -239,6 +240,8 @@ void ParticleSystem::Draw(Shader &shader, mat4 &view, mat4 &projection, vec3 &ca
             particles[i].Draw(shader, degree);
         }
     }
+
+    glDepthMask(GL_TRUE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_BLEND);
 
