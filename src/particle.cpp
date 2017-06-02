@@ -4,7 +4,6 @@
 
 #include "particle.h"
 
-#define RANDOM_FLOAT (((float)rand())/RAND_MAX)
 
 GLfloat particleQuad[30] = {
         // Positions        // TexCoords

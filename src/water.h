@@ -22,9 +22,9 @@ struct Oscillator {
 
 class Water {
 public:
-    Water(Texture texture, int xSize = 150, int zSize = 150, float offset = 0.05, float weight = 0.01, float damping = 0.002);
+    Water(Texture texture, int xSize = 80, int zSize = 80, float offset = 0.05, float weight = 0.05, float damping = 0.002);
     void Reset();
-    void Affect(int xPos, int zPos, float deltaY = -0.05d);
+    void Affect(int xPos, int zPos, float deltaY = -0.06d);
     void ChangeTexture(GLuint textureID);
     mat4 GetViewMatrix(vec3 front, vec3 up);
     void Update(float deltaTima);

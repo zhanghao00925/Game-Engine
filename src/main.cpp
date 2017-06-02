@@ -10,6 +10,7 @@
 #include "water.h"
 #include "particle.h"
 #include "object.h"
+#include "shadow.h"
 
 int main() {
     // Init GLFW
@@ -23,6 +24,7 @@ int main() {
     // Set the required callback functions
     glfwSetKeyCallback(window, Controller::KeyCallback);
     glfwSetCursorPosCallback(window, Controller::MouseCallback);
+    glfwSetMouseButtonCallback(window, Controller::MouseButtonCallback);
     // Options
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     // Initialize GLEW to setup the OpenGL Function pointers
@@ -33,7 +35,7 @@ int main() {
     // Setup some OpenGL options
     glEnable(GL_DEPTH_TEST);
     // Setup camera
-    Camera *mainCamera = new Camera(vec3(0, 0, 10));
+    Camera *mainCamera = new Camera(vec3(-4.5, 13.0, 14.0));
     Controller::BindCamera(mainCamera);
     // Setup skybox
     SkyBox skybox(skyBoxPath);
@@ -42,27 +44,19 @@ int main() {
     // Setup nanosuit
     Model nanosuitModel("models/nanosuit/nanosuit.obj");
     Shader modelShader("shaders/model/model.vs", "shaders/model/model.frag");
+    Shader shadowModelShader("shaders/model/shadowModel.vs", "shaders/model/shadowModel.frag");
     modelShader.Use();
     glUniform1f(glGetUniformLocation(modelShader.Program, "material.shininess"), 32.0f);
     glUniform3f(glGetUniformLocation(modelShader.Program, "light.ambient"),  0.2f, 0.2f, 0.2f);
     glUniform3f(glGetUniformLocation(modelShader.Program, "light.diffuse"),  0.5f, 0.5f, 0.5f);
     glUniform3f(glGetUniformLocation(modelShader.Program, "light.specular"), 1.0f, 1.0f, 1.0f);
     glUniform3f(glGetUniformLocation(modelShader.Program, "light.direction"), -1.0, -1.0, -1.0);
-
+    // Setup Room
+    Model room("models/Room/Room.obj");
     // Setup screen
     Screen screen;
     Shader screenShader("shaders/screen/screen.vs", "shaders/screen/screenNormal.frag");
     // Setup Defer
-    std::vector<glm::vec3> objectPositions;
-    objectPositions.push_back(glm::vec3(-1.0, -1.0, -1.0));
-    objectPositions.push_back(glm::vec3(0.0, -1.0, -1.0));
-    objectPositions.push_back(glm::vec3(1.0, -1.0, -1.0));
-    objectPositions.push_back(glm::vec3(-1.0, -1.0, 0.0));
-    objectPositions.push_back(glm::vec3(0.0, -1.0, 0.0));
-    objectPositions.push_back(glm::vec3(1.0, -1.0, 0.0));
-    objectPositions.push_back(glm::vec3(-1.0, -1.0, 1.0));
-    objectPositions.push_back(glm::vec3(0.0, -1.0, 1.0));
-    objectPositions.push_back(glm::vec3(1.0, -1.0, 1.0));
     // - Colors
     const GLuint NR_LIGHTS = 32;
     std::vector<glm::vec3> lightPositions;
@@ -96,23 +90,27 @@ int main() {
     // Setup water
     Texture woodTexture("textures/wood.png");
     Water water(woodTexture);
+//    water.Affect(50, 50);
     // Setup Particle System
-    Texture particleTexture("textures/particle1.png");
+    Texture particleTexture("textures/particle1_.png");
     Shader particleShader("shaders/particle/particle.vs", "shaders/particle/particle.frag");
     ParticleSystem particleSystem;
     particleSystem.Initialize(300);
     particleSystem.SetCreateSpeed(300, 0);
     particleSystem.recreateWhenDie = false;
-    particleSystem.SetLifeTime(0.5, 1.5);
+    particleSystem.SetLifeTime(2.0, 3.5);
     particleSystem.SetCreationColor(vec3(1.0f,0.0f,0.0f), vec3(1.0f,0.5f,0.0f));
-    particleSystem.SetDieColor(vec3(1.0f,1.0f,1.0f), vec3(1.0f,0.5f,0.0f));
+    particleSystem.SetDieColor(vec3(1.0f,1.0f,1.0f), vec3(0.9f,0.4f,0.0f));
     particleSystem.SetAlphaValues(1.0f,1.0f,0.3f,0.3f);
     particleSystem.SetEmitter(vec3(0.0f,0.0f,0.5f), vec3(0.1f,0.0f,0.1f));
     particleSystem.SetAcceleration(vec3(0.0f,1.0f,0.0f), 0.3f, 0.4f);
-    particleSystem.SetSizeValues(0.04f,0.08f,0.06f,0.12f);
+    particleSystem.SetSizeValues(0.5f, 1.0f, 0.4f, 0.8f);
     particleSystem.SetEmitSpeed(0.2, 0.3);
-    particleSystem.SetEmitDirection(vec3(0.0f,1.0f,0.0f), vec3(0.08f,0.5f,0.08f));
+    particleSystem.SetEmitDirection(vec3(0.0f,1.0f,0.0f), vec3(0.1f,0.5f,0.1f));
     particleSystem.SetTexture(particleTexture.texId);
+    // Setup Shadow
+    Shader shadowShader("shaders/shadow/shadow.vs", "shaders/shadow/shadow.frag");
+    Shadow shadow(1024, 1024);
     // Setup Rock
     Model rockModel("models/rock/rock.obj");
     vec3 rockPosition(0, 100, 0);
@@ -120,11 +118,26 @@ int main() {
     vec3 velocity(0.0, 0.0, 0.0);
     // Setup Floor
     Object floor(Object_Type::PLANE);
+    Object cube(Object_Type::CUBE);
+    Object mirror(Object_Type::PLANE);
+
+    vec3 lightPos = vec3(30, 5, 0);
+    shadow.SetLightPosition(lightPos);
+    vec3 firePositions[4] = {
+            vec3(13.15f, 12.5f, -5.0f),
+            vec3(-11.75f, 12.5f, -5.0f),
+            vec3(3.4f, 5.3f, -5.7f),
+            vec3(-3.2f, 5.3f, -5.7f)
+    };
+    // Setup Stencil
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+    Shader stencilShader("shaders/stencil/stencil.vs", "shaders/stencil/stencil.frag");
     // Setup timer
-    double deltaTime = 0.0f, lastFrame = 0.0f;
+    double deltaTime, lastFrame = 0.0f;
     // Game loop
     while (!glfwWindowShouldClose(window)) {
-
         GLfloat currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
@@ -133,43 +146,82 @@ int main() {
         Controller::Movement(deltaTime);
         // Render
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // We're not using stencil buffer now
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+//        cout << mainCamera->Position.x << " " << mainCamera->Position.y << " " << mainCamera->Position.z << endl;
+        glStencilMask(0x00);
         glm::mat4 model;
         glm::mat4 cameraView = mainCamera->GetViewMatrix();
         glm::mat4 cameraSkyboxView = mat4(mat3(cameraView));
         glm::mat4 waterView = water.GetViewMatrix(vec3(0, 0, 0), mainCamera->Up);
         glm::mat4 waterSkyboxView = mat4(mat3(waterView));
+
+        glm::mat4 mirrorView;
         glm::mat4 projection = glm::perspective(mainCamera->Zoom, (float)SCR_WIDTH/(float)SCR_HEIGHT, 0.1f, 1000.0f);
 
-
         skybox.Draw(skyboxShader, skyboxModel, cameraSkyboxView, projection);
-
-
-        water.Update(deltaTime);
-        modelShader.Use();
-        water.ChangeTexture(woodTexture.texId);
-        glUniform3f(glGetUniformLocation(modelShader.Program, "viewPos"),  mainCamera->Position.x, mainCamera->Position.y, mainCamera->Position.z);
-        water.Draw(modelShader, mat4(), cameraView, projection);
-
-        model = glm::mat4();
-        model = glm::translate(model, rockPosition);
-        model = glm::scale(model, glm::vec3(0.15, 0.15, 0.15));
-        rockModel.Draw(modelShader, model, cameraView, projection);
-
-        particleSystem.SetEmitter(rockPosition + vec3(0, 0.3, 0), vec3(0.1f,0.0f,0.1f));
+        // Set shadow
+        shadow.Bind(shadowShader);
+        // Room
+        model = mat4();
+        model = glm::scale(model, vec3(3.0f, 3.0f, 3.0f));
+        room.Draw(shadowShader, model, cameraView, projection);
+        // model 1
+        model = mat4();
+        model = glm::translate(mat4(), vec3(0, 5, 5));
+        model = glm::scale(model, vec3(0.5, 0.5, 0.5));
+        model = glm::rotate(model, (float)(-90.0f/180.0 * PI), vec3(0, 1, 0));
+        nanosuitModel.Draw(shadowShader, model, cameraView, projection);
+        // model 2
+        model = mat4();
+        model = glm::translate(mat4(), vec3(0, 5, 0));
+        model = glm::scale(model, vec3(0.5, 0.5, 0.5));
+        nanosuitModel.Draw(shadowShader, model, cameraView, projection);
+        shadow.Release();
+        shadow.Apply(shadowModelShader, mainCamera->Position);
+        // Render room
+        model = mat4();
+        model = glm::scale(model, vec3(3.0f, 3.0f, 3.0f));
+        room.Draw(shadowModelShader, model, cameraView, projection);
+        // Setup Window
+        screen.Bind();
+        vec3 direction = vec3(-1.0f, 10.0f, 15.0f) + vec3(-1.0f, 10.0f, 15.0f) - mainCamera->Position;
+        direction.y = 10.0f;
+        mirrorView = lookAt(vec3(-1.0f, 10.0f, 15.0f), direction, vec3(0.0f, 1.0f, 0.0f));
+        mirrorView = mat4(mat3(mirrorView));
+        skybox.Draw(skyboxShader, skyboxModel, mirrorView, projection);
+        screen.Release();
+        // Render Window
+        model = mat4();
+        model = glm::translate(model, vec3(0, 10, -6));
+        model = glm::rotate(model, (float)(90.0f/180.0f * PI), vec3(1, 0, 0));
+        model = glm::translate(model, vec3(0, -5, 0));
+        model = glm::scale(model, vec3(1, 0.5, 1));
+        mirror.Draw(modelShader, model, cameraView, projection, screen.screenTexId);
+        // Update four fire
+        // Big fire
+        particleSystem.SetSizeValues(0.5f, 1.0f, 0.4f, 0.8f);
+        particleSystem.SetEmitter(vec3(13.15f, 12.5f, -5.0f), vec3(0.1f,0.0f,0.1f));
         particleSystem.Update(deltaTime);
         particleSystem.Draw(particleShader, cameraView, projection, mainCamera->Position);
-
-        velocity += gravity;
-        rockPosition -= velocity;
-        if (rockPosition.y < 0) {
-            rockPosition.y = 100;
-            velocity = vec3(0, 0, 0);
-            water.Affect(50, 50);
-            cout << "set" << endl;
+        particleSystem.SetEmitter(vec3(-11.75f, 12.5f, -5.0f), vec3(0.1f,0.0f,0.1f));
+        particleSystem.Update(deltaTime);
+        particleSystem.Draw(particleShader, cameraView, projection, mainCamera->Position);
+        // Small fire
+        particleSystem.SetSizeValues(0.3f, 0.6f, 0.2f, 0.4f);
+        particleSystem.SetEmitter(vec3(3.4f, 5.3f, -5.7f), vec3(0.1f,0.0f,0.1f));
+        particleSystem.Update(deltaTime);
+        particleSystem.Draw(particleShader, cameraView, projection, mainCamera->Position);
+        particleSystem.SetEmitter(vec3(-3.2f, 5.3f, -5.7f), vec3(0.1f,0.0f,0.1f));
+        particleSystem.Update(deltaTime);
+        particleSystem.Draw(particleShader, cameraView, projection, mainCamera->Position);
+        // Setup Water
+        model = mat4();
+        model = translate(model, vec3(-1.9, 4, 0.2));
+        if (RANDOM_FLOAT < 0.2) {
+            water.Affect(rand() % 80, rand() % 80);
         }
-
-
+        water.Update(deltaTime);
+        water.Draw(modelShader, model, cameraView, projection);
 //      Swap the screen buffers
         font.Draw(fontShader, "FPS: " + to_string(int(1 / deltaTime)), 700.0f, 570.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
         glfwSwapBuffers(window);

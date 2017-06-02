@@ -15,6 +15,8 @@ using namespace std;
 #define NEAR 1000.f
 #define PI 3.1415926535898
 
+#define RANDOM_FLOAT (((float)rand())/RAND_MAX)
+
 extern const vector<string> skyBoxPath;
 
 #endif //GAME_ENGINE_DEFINITION_H

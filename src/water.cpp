@@ -79,12 +79,10 @@ void Water::Reset() {
 }
 
 void Water::Affect(int xPos, int zPos, float deltaY) {
-    cout << oscillators[xPos + zPos * xSize].position.y << endl;
     if ((xPos >= 0) && (xPos < xSize) && (zPos >= 0) && (zPos < zSize)) {
         if (oscillators[xPos + zPos * xSize].position.y > -0.15)  //THIS LINE IS REQUIRED FOR FOUNTAINS WITH MANY DROPS!!!
             oscillators[xPos + zPos * xSize].position.y += deltaY;
     }
-    cout << oscillators[xPos + zPos * xSize].position.y << endl;
 }
 
 void Water::Update(float deltaTime) {

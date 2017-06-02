@@ -14,6 +14,7 @@ class Controller {
 public:
     static void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
     static void MouseCallback(GLFWwindow* window, double xpos, double ypos);
+    static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void Movement(double deltaTime);
     static void BindCamera(Camera *camera);
 
@@ -21,6 +22,7 @@ private:
     static Camera *mainCamera;
     static bool firstMouse;
     static bool keys[1024];
+    static bool leftMouse, rightMouse;
     static double lastX, lastY;
 };
 

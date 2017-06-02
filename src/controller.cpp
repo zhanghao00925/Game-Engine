@@ -8,6 +8,8 @@ double Controller::lastX = SCR_WIDTH;
 double Controller::lastY = SCR_HEIGHT;
 bool Controller::firstMouse = true;
 bool Controller::keys[1024] = {false};
+bool Controller::leftMouse = false;
+bool Controller::rightMouse = false;
 Camera *Controller::mainCamera = nullptr;
 
 void Controller::KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
@@ -34,6 +36,24 @@ void Controller::MouseCallback(GLFWwindow* window, double xpos, double ypos) {
     lastX = xpos;
     lastY = ypos;
 }
+
+void Controller::MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        if (action == GLFW_PRESS) {
+            rightMouse = true;
+        } else {
+            rightMouse = false;
+        }
+    }
+    if (button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            leftMouse = true;
+        } else {
+            leftMouse = false;
+        }
+    }
+}
+
 
 void Controller::Movement(double deltaTime) {
     // Camera controls
