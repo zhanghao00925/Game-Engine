@@ -8,6 +8,7 @@
 #include "headers.h"
 #include "definition.h"
 #include "camera.h"
+#include "game.h"
 
 
 class Controller {
@@ -17,12 +18,14 @@ public:
     static void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     static void Movement(double deltaTime);
     static void BindCamera(Camera *camera);
+    static void BindGame(Game *game);
 
 private:
     static Camera *mainCamera;
+    static Game *mainGame;
     static bool firstMouse;
     static bool keys[1024];
-    static bool leftMouse, rightMouse;
+    static bool leftMouse, rightMouse, middleMouse;
     static double lastX, lastY;
 };
 
