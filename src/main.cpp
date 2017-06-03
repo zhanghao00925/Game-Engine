@@ -166,19 +166,19 @@ int main() {
                 mainCamera->Up = vec3(0.0, 1.0, 0.0);
             } else {
                 if (game->isMoving()) {
-                    if (mainCamera->Position.x > -2.8) {
-                        mainCamera->Position += (vec3(-2.8, 11.0, 15.0) - vec3(0.6, 11.0, 16.0)) / 100.0f;
+                    if (mainCamera->Position.x > 0.7) {
+                        mainCamera->Position += (vec3(0.7, 11.0, 16.0) - vec3(0.6, 11.0, 16.0)) / 100.0f;
                     }
-                    if (mainCamera->Front.x > -0.5) {
-                        mainCamera->Front += (vec3(-0.5, -0.1, -0.8) - vec3(0.0, 0.0, -1.0)) / 100.0f;
+                    if (mainCamera->Front.x > -0.6) {
+                        mainCamera->Front += (vec3(-0.6, -0.08, -0.74) - vec3(0.0, 0.0, -1.0)) / 100.0f;
                     }
-                    if (mainCamera->Position.x <= -2.8 && mainCamera->Front.x <= -0.5) {
+                    if (mainCamera->Position.x <= 0.7 && mainCamera->Front.x <= -0.6) {
                         game->moving = false;
                         shadowModelShader.Use();
                         glUniform1i(glGetUniformLocation(shadowModelShader.Program, "inGame"), 0);
                     }
                 } else {
-                    mainCamera->Position = vec3(-2.8, 11.0, 15.0);
+                    mainCamera->Position = vec3(0.7, 11.0, 16.0);
                 }
             }
         } else {
@@ -186,16 +186,22 @@ int main() {
             glUniform1i(glGetUniformLocation(shadowModelShader.Program, "inGame"), 0);
             game->Start();
         }
-        if (game->isStart()) {
+        if (game->isStart() && !game->isMoving()) {
+            gBuffer.Bind();
             model = mat4();
-            model = glm::translate(mat4(), vec3(-3, 10, 5));
+            model = glm::translate(mat4(), vec3(-4, 10, 8));
             model = glm::scale(model, vec3(0.4, 0.4, 0.4));
             model = glm::translate(model, vec3(0, 5, 0));
-            model = glm::rotate(model, (float) (game->nowRotate.x), vec3(1, 0, 0));
-            model = glm::rotate(model, (float) (game->nowRotate.y), vec3(0, 1, 0));
-            model = glm::rotate(model, (float) (game->nowRotate.z), vec3(0, 0, 1));
+            model = glm::rotate(model, (float)(game->nowRotate.x), vec3(1, 0, 0));
+            model = glm::rotate(model, (float)(game->nowRotate.y), vec3(0, 1, 0));
+            model = glm::rotate(model, (float)(game->nowRotate.z), vec3(0, 0, 1));
             model = glm::translate(model, vec3(0, -5, 0));
-            nanosuitModel.Draw(modelShader, model, cameraView, projection);
+            nanosuitModel.Draw(ssaoGShader, model, cameraView, projection);
+            gBuffer.Release();
+            ssao.SSAOProcess(ssaoShader, gBuffer, projection);
+            ssao.SSAOBlurProcess(ssaoBlurShader);
+            ssao.Draw(ssaoLShader, gBuffer, lightPos, vec3(1, 1, 1), mainCamera->Position);
+            gBuffer.CopyDepthBuffer((GLuint)0);
         }
         glStencilMask(0x00);
         cameraView = mainCamera->GetViewMatrix();

@@ -115,4 +115,5 @@ void GBuffer::CopyDepthBuffer(GLuint destination) {
     // the internal formats are implementation defined. This works on all of my systems, but if it doesn't on yours you'll likely have to write to the
     // depth buffer in another shader stage (or somehow see to match the default framebuffer's internal format with the FBO's internal format).
     glBlitFramebuffer(0, 0, SCR_WIDTH, SCR_HEIGHT, 0, 0, SCR_WIDTH, SCR_HEIGHT, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    glBindFramebuffer(GL_FRAMEBUFFER, destination);
 }

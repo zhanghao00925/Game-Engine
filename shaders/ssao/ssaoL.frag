@@ -34,11 +34,11 @@ void main()
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.Color;
     // Specular
     vec3 halfwayDir = normalize(lightDir + viewDir);
-    float spec = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
+    float spec = pow(max(dot(Normal, halfwayDir), 0.0), 64.0);
     vec3 specular = light.Color * spec * Specular;
     // Attenuation
     float distance = length(light.Position - FragPos);
-    float attenuation = 1.0 / (1.0 + light.Linear * distance + light.Quadratic * distance * distance);
+    float attenuation = 30.0 / (1.0 + light.Linear * distance + light.Quadratic * distance * distance);
     diffuse *= attenuation;
     specular *= attenuation;
     lighting += diffuse + specular;
