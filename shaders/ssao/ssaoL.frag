@@ -15,6 +15,7 @@ struct Light {
     float Quadratic;
 };
 uniform Light light;
+uniform vec3 viewPos;
 
 void main()
 {
@@ -28,7 +29,7 @@ void main()
     // Then calculate lighting as usual
     vec3 ambient = vec3(0.3 * AmbientOcclusion); // <-- this is where we use ambient occlusion
     vec3 lighting  = ambient * Diffuse;
-    vec3 viewDir  = normalize(-FragPos); // Viewpos is (0.0.0)
+    vec3 viewDir  = normalize(viewPos - FragPos); // Viewpos is (0.0.0)
     // Diffuse
     vec3 lightDir = normalize(light.Position - FragPos);
     vec3 diffuse = max(dot(Normal, lightDir), 0.0) * Diffuse * light.Color;

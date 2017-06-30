@@ -1,0 +1,10 @@
+newmtl _AM130_001_007
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.59 0.59 0.59
+Tf 1.00 1.00 1.00
+map_Kd AM130_001_diff.jpg
+Ni 1.50
+Ks 0.00 0.00 0.00
+map_Ks AM130_001_spec.jpg
+Ns 10.00

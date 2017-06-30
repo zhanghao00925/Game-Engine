@@ -35,6 +35,10 @@ int main() {
     glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
     // Setup some OpenGL options
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_STENCIL_TEST);
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     // Setup camera
     Camera *mainCamera = new Camera(vec3(-4.5, 13.0, 14.0));
     Game *game = new Game;
@@ -45,7 +49,7 @@ int main() {
     Model skyboxModel("models/sphere.obj");
     Shader skyboxShader("shaders/skybox/skybox.vs", "shaders/skybox/skybox.frag");
     // Setup nanosuit
-    Model nanosuitModel("models/nanosuit/nanosuit.obj");
+    Model nanosuitModel("models/fruit/fruit.obj");
     Shader modelShader("shaders/model/model.vs", "shaders/model/model.frag");
     modelShader.Use();
     glUniform1f(glGetUniformLocation(modelShader.Program, "material.shininess"), 64.0f);
@@ -135,10 +139,8 @@ int main() {
     vec3 lightPos = vec3(30, 5, 0);
     shadow.SetLightPosition(lightPos);
     // Setup Stencil
-    glEnable(GL_STENCIL_TEST);
-    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
     Shader stencilShader("shaders/stencil/stencil.vs", "shaders/stencil/stencil.frag");
+    Shader voidShader("shaders/model/model.vs", "shaders/model/singleColorModel.frag");
     // Setup Game
     // Setup timer
     double deltaTime, lastFrame = 0.0f;
@@ -186,16 +188,17 @@ int main() {
             glUniform1i(glGetUniformLocation(shadowModelShader.Program, "inGame"), 0);
             game->Start();
         }
+
+        glDisable(GL_STENCIL_TEST);
         if (game->isStart() && !game->isMoving()) {
+
             gBuffer.Bind();
             model = mat4();
-            model = glm::translate(mat4(), vec3(-4, 10, 8));
+            model = glm::translate(mat4(), vec3(-4, 12, 3));
             model = glm::scale(model, vec3(0.4, 0.4, 0.4));
-            model = glm::translate(model, vec3(0, 5, 0));
             model = glm::rotate(model, (float)(game->nowRotate.x), vec3(1, 0, 0));
             model = glm::rotate(model, (float)(game->nowRotate.y), vec3(0, 1, 0));
             model = glm::rotate(model, (float)(game->nowRotate.z), vec3(0, 0, 1));
-            model = glm::translate(model, vec3(0, -5, 0));
             nanosuitModel.Draw(ssaoGShader, model, cameraView, projection);
             gBuffer.Release();
             ssao.SSAOProcess(ssaoShader, gBuffer, projection);
@@ -203,7 +206,6 @@ int main() {
             ssao.Draw(ssaoLShader, gBuffer, lightPos, vec3(1, 1, 1), mainCamera->Position);
             gBuffer.CopyDepthBuffer((GLuint)0);
         }
-        glStencilMask(0x00);
         cameraView = mainCamera->GetViewMatrix();
         cameraSkyboxView = mat4(mat3(cameraView));
         // Set shadow
@@ -214,23 +216,23 @@ int main() {
         room.Draw(shadowShader, model, cameraView, projection);
         // model 1
         model = mat4();
-        model = glm::translate(mat4(), vec3(-3, 10, 5));
+        model = glm::translate(mat4(), vec3(-3, 15, 6));
         model = glm::scale(model, vec3(0.4, 0.4, 0.4));
-        model = glm::translate(model, vec3(0, 5, 0));
+//        model = glm::translate(model, vec3(0, 5, 0));
         model = glm::rotate(model, (float)(game->nowRotate.x), vec3(1, 0, 0));
         model = glm::rotate(model, (float)(game->nowRotate.y), vec3(0, 1, 0));
         model = glm::rotate(model, (float)(game->nowRotate.z), vec3(0, 0, 1));
-        model = glm::translate(model, vec3(0, -5, 0));
+//        model = glm::translate(model, vec3(0, -5, 0));
         nanosuitModel.Draw(shadowShader, model, cameraView, projection);
         // model 2
         model = mat4();
-        model = glm::translate(mat4(), vec3(-3, 10, 0));
+        model = glm::translate(mat4(), vec3(-3, 15, 0));
         model = glm::scale(model, vec3(0.4, 0.4, 0.4));
-        model = glm::translate(model, vec3(0, 5, 0));
+//        model = glm::translate(model, vec3(0, 5, 0));
         model = glm::rotate(model, (float)(game->winRotate.x), vec3(1, 0, 0));
         model = glm::rotate(model, (float)(game->winRotate.y), vec3(0, 1, 0));
         model = glm::rotate(model, (float)(game->winRotate.z), vec3(0, 0, 1));
-        model = glm::translate(model, vec3(0, -5, 0));
+//        model = glm::translate(model, vec3(0, -5, 0));
         nanosuitModel.Draw(shadowShader, model, cameraView, projection);
         shadow.Release();
         shadow.Apply(shadowModelShader, mainCamera->Position);
@@ -286,11 +288,48 @@ int main() {
         }
         water.Update(deltaTime);
         water.Draw(waterShader, model, cameraView, projection);
+
+
 //      Swap the screen buffers
         if (!game->isStart()) {
             font.Draw(fontShader, "Press Enter To Start!", 180.0f, 250.0f, 1.0f, glm::vec3(0.8, 0.8f, 0.8f));
         }
         font.Draw(fontShader, "FPS: " + to_string(int(1 / deltaTime)), 700.0f, 570.0f, 0.5f, glm::vec3(0.5, 0.8f, 0.2f));
+
+        glEnable(GL_STENCIL_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        if (game->isStart() && !game->isMoving()) {
+            glStencilFunc(GL_ALWAYS, 1, 0xFF);
+            glStencilMask(0xFF);
+            model = mat4();
+            model = glm::translate(mat4(), vec3(-4, 12, 3));
+            model = glm::scale(model, vec3(0.4, 0.4, 0.4));
+            model = glm::rotate(model, (float) (game->nowRotate.x), vec3(1, 0, 0));
+            model = glm::rotate(model, (float) (game->nowRotate.y), vec3(0, 1, 0));
+            model = glm::rotate(model, (float) (game->nowRotate.z), vec3(0, 0, 1));
+            nanosuitModel.Draw(voidShader, model, cameraView, projection);
+
+            glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+            glStencilMask(0x00);
+            glDisable(GL_DEPTH_TEST);
+
+            model = mat4();
+            model = glm::translate(mat4(), vec3(-4, 12, 3));
+            model = glm::scale(model, vec3(0.42, 0.42, 0.42));
+            model = glm::rotate(model, (float) (game->nowRotate.x), vec3(1, 0, 0));
+            model = glm::rotate(model, (float) (game->nowRotate.y), vec3(0, 1, 0));
+            model = glm::rotate(model, (float) (game->nowRotate.z), vec3(0, 0, 1));
+            nanosuitModel.Draw(stencilShader, model, cameraView, projection);
+            glStencilMask(0xFF);
+            glEnable(GL_DEPTH_TEST);
+        }
+
+        glDisable(GL_BLEND);
+
         glfwSwapBuffers(window);
     }
 
